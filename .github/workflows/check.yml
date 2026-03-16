@@ -25,8 +25,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: data/
-          key: release-state-${{ github.ref }}
-          restore-keys: release-state-
+          key: release-state-${{ github.run_id }}
+          restore-keys: |
+            release-state-
 
       - name: Run release check
         env:

@@ -11,9 +11,8 @@ function formatOneRelease(release: CategorizedRelease, targetLang: string): stri
   const lines: string[] = [];
   const tag = escapeHtml(release.tag);
 
-  lines.push(
-    `${release.date}  <a href="${release.url}">${tag}</a>`,
-  );
+  lines.push(`🔖 <b><a href="${release.url}">${tag}</a></b>`);
+  lines.push(`📅 <i>${release.date}</i>`);
 
   for (const cat of release.categories) {
     const meta = getCategoryMeta(cat.type, targetLang);
@@ -37,7 +36,7 @@ export function formatMessage(
   parts.push(`<b>${escapeHtml(repo)}</b>`);
 
   for (let i = 0; i < releases.length; i++) {
-    if (i > 0) parts.push('\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄');
+    if (i > 0) parts.push('\n──────────────────');
     parts.push('');
     parts.push(formatOneRelease(releases[i], targetLang));
   }
