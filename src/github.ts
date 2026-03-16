@@ -135,6 +135,15 @@ export async function checkRepo(
     );
     return { repo, newReleases: filtered, etag };
   }
+
+  // Filter by lastCheck to skip releases published before the last bot run
+  if (repoState.lastCheck && newReleases.length > 0) {
+    const cutoff = new Date(repoState.lastCheck).getTime();
+    const filtered = newReleases.filter(
+      (r) => new Date(r.published_at).getTime() > cutoff,
+    );
+    return { repo, newReleases: filtered, etag };
+  }
   return { repo, newReleases, etag };
 }
 
@@ -205,6 +214,23 @@ export async function checkRepoTags(
       if (!dateStr) continue;
       if (new Date(dateStr).getTime() <= cutoffTime) break;
       filtered.push(t);
+    }
+    return { repo, newTags: filtered, etag };
+  }
+
+  // Filter by lastCheck to skip tags committed before the last bot run
+  if (repoState.lastCheck && newTags.length > 0) {
+    const cutoffTime = new Date(repoState.lastCheck).getTime();
+    const filtered: GitHubTag[] = [];
+    for (const t of newTags) {
+      const dateStr = await getCommitDate(repo, t.commit.sha, token);
+      if (!dateStr) {
+        filtered.push(t);
+        continue;
+      }
+      if (new Date(dateStr).getTime() > cutoffTime) {
+        filtered.push(t);
+      }
     }
     return { repo, newTags: filtered, etag };
   }

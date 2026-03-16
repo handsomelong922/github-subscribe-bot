@@ -36,14 +36,12 @@ async function processReleaseRepo(
 
   if (result.newReleases.length === 0) {
     console.log(`[${key}] No new releases`);
-    if (result.etag && result.etag !== state[key]?.etag) {
-      state[key] = {
-        lastRelease: state[key]?.lastRelease,
-        lastReleaseDate: state[key]?.lastReleaseDate,
-        etag: result.etag,
-        lastCheck: now,
-      };
-    }
+    state[key] = {
+      lastRelease: state[key]?.lastRelease,
+      lastReleaseDate: state[key]?.lastReleaseDate,
+      etag: result.etag ?? state[key]?.etag ?? null,
+      lastCheck: now,
+    };
     return;
   }
 
@@ -91,14 +89,12 @@ async function processTagRepo(
 
   if (result.newTags.length === 0) {
     console.log(`[${repo}:tag] No new tags`);
-    if (result.etag && result.etag !== state[key]?.etag) {
-      state[key] = {
-        lastTag: state[key]?.lastTag,
-        lastTagDate: state[key]?.lastTagDate,
-        etag: result.etag,
-        lastCheck: now,
-      };
-    }
+    state[key] = {
+      lastTag: state[key]?.lastTag,
+      lastTagDate: state[key]?.lastTagDate,
+      etag: result.etag ?? state[key]?.etag ?? null,
+      lastCheck: now,
+    };
     return;
   }
 
