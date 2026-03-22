@@ -132,7 +132,8 @@ Your task:
 
 Rules:
 - Each item must be a concise one-line description in ${targetLang}
-- Merge duplicate or very similar items
+- Merge duplicate or very similar items into a single ${targetLang} item
+- When the same change is described in multiple languages (e.g., both Chinese and English), keep only ONE ${targetLang} description — do NOT include both
 - Skip CI/build/dependency-only changes unless significant
 - If input is empty or meaningless, return empty categories array
 - NEVER return markdown code fences
@@ -218,6 +219,22 @@ Output:
     {
       "type": "other",
       "items": ["移除已弃用的 API 端点", "弃用旧配置格式"]
+    }
+  ]
+}
+
+Input:
+• 新增 Vercel AI Gateway 内置服务提供商
+• 新增 MiMo 流式语音合成支持
+• Added Vercel AI Gateway as a built-in provider
+• Added MiMo streaming TTS support
+
+Output:
+{
+  "categories": [
+    {
+      "type": "feat",
+      "items": ["新增 Vercel AI Gateway 内置服务提供商", "新增 MiMo 流式语音合成支持"]
     }
   ]
 }
