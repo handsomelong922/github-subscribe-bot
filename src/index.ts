@@ -47,13 +47,13 @@ async function processReleaseRepo(
   }
 
   console.log(
-    `[${key}] Found ${result.newReleases.length} new release(s)`,
+    `[${key}] Found ${result.newReleases.length} new release(s), sending only the latest`,
   );
 
-  const categorized: CategorizedRelease[] = [];
-  for (const release of result.newReleases) {
-    categorized.push(await categorizeRelease(model, release, config.timezone, config.targetLang));
-  }
+  const latestRelease = result.newReleases[0];
+  const categorized: CategorizedRelease[] = [
+    await categorizeRelease(model, latestRelease, config.timezone, config.targetLang),
+  ];
 
   const messages = splitMessages(repo, categorized, config.targetLang);
 
@@ -98,44 +98,36 @@ async function processTagRepo(
   }
 
   console.log(
-    `[${repo}:tag] Found ${result.newTags.length} new tag(s)`,
+    `[${repo}:tag] Found ${result.newTags.length} new tag(s), sending only the latest`,
   );
 
   const prevTag = state[key]?.lastTag;
-  const categorized: CategorizedRelease[] = [];
+  const latestTag = result.newTags[0];
 
-  for (const tag of [...result.newTags].reverse()) {
-    let commits;
-    if (prevTag || categorized.length > 0) {
-      const base = categorized.length > 0
-        ? result.newTags[result.newTags.length - categorized.length]?.name ?? prevTag!
-        : prevTag!;
-      commits = await getCompareCommits(
-        repo, base, tag.name, config.githubToken,
-      );
-    } else {
-      // First run: no previous tag, fetch recent commits for this tag
-      commits = await getTagCommits(repo, tag.name, config.githubToken);
-    }
-    const body = commits.map((c) => c.commit.message).join('\n');
-    const tagDate = await getCommitDate(repo, tag.commit.sha, config.githubToken);
-
-    const pseudoRelease: GitHubRelease = {
-      tag_name: tag.name,
-      name: tag.name,
-      body,
-      html_url: `https://github.com/${repo}/releases/tag/${tag.name}`,
-      published_at: tagDate ?? now,
-      draft: false,
-      prerelease: false,
-    };
-
-    categorized.push(
-      await categorizeRelease(model, pseudoRelease, config.timezone, config.targetLang),
-    );
+  let commits;
+  if (prevTag) {
+    commits = await getCompareCommits(repo, prevTag, latestTag.name, config.githubToken);
+  } else {
+    // First run: no previous tag, fetch recent commits for this tag
+    commits = await getTagCommits(repo, latestTag.name, config.githubToken);
   }
+  const body = commits.map((c) => c.commit.message).join('\n');
+  const tagDate = await getCommitDate(repo, latestTag.commit.sha, config.githubToken);
 
-  categorized.reverse();
+  const pseudoRelease: GitHubRelease = {
+    tag_name: latestTag.name,
+    name: latestTag.name,
+    body,
+    html_url: `https://github.com/${repo}/releases/tag/${latestTag.name}`,
+    published_at: tagDate ?? now,
+    draft: false,
+    prerelease: false,
+  };
+
+  const categorized: CategorizedRelease[] = [
+    await categorizeRelease(model, pseudoRelease, config.timezone, config.targetLang),
+  ];
+
   const messages = splitMessages(repo, categorized, config.targetLang);
 
   for (const msg of messages) {
